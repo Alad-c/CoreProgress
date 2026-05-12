@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoreProgress | Fitness Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💪</text></svg>">
+</head>
+<body id="top">
+    <nav>
+    <div class="logo" onclick="scrollToTop()">Core<span>Progress</span></div>
+    
+    <div class="music-player">
+        <audio id="bg-music" controls>
+            <source src="Coldplay - WE PRAY (TINI Version) (Official).mp3" type="audio/mpeg">
+        </audio>
+    </div>
+
+    <ul class="nav-links" id="nav-auth-section">
+    <li><a href="https://youtube.com/squashtv" target="_blank">SquashTV</a></li>
+    <li><a href="https://github.com" target="_blank">Repo</a></li>
+    <li><a href="results.html" style="color: var(--warning); font-weight: bold;">🏆 Results</a></li>
+    
+    <!-- These will be replaced by the username via JavaScript -->
+    <li><a href="login.html" class="auth-btn">Sign In</a></li>
+    <li><a href="register.html" class="auth-btn register">Register</a></li>
+</ul>
+
+</nav>
+
+
+
+    <main class="dashboard">
+        <!-- Street Workout Card -->
+        <div class="card workout">
+            <div class="card-header">
+                <h2>Street Workout</h2>
+                <span class="icon">💪</span>
+            </div>
+            <div class="counter-display">
+                <span id="set-count">0</span> <small>Sets Done</small>
+            </div>
+            <div id="timer-display" class="timer-inactive">Rest: 03:00</div>
+            <div class="controls-grid">
+                <button class="btn main-btn" onclick="addSet()">+ Add Set</button>
+                <button class="btn rest-btn" onclick="startRestTimer(180)">⏱ Rest</button>
+                <button class="btn reset-btn" onclick="resetWorkoutSets()">Reset Sets</button>
+                <button class="btn complete-btn" onclick="completeWorkout()">Complete Workout</button>
+            </div>
+            <div class="stats" style="margin-top: 15px;">
+                <span>Month Total: <strong id="workout-total">0</strong> Workouts</span>
+            </div>
+        </div>
+
+        <!-- Squash Match Card -->
+        <div class="card squash">
+            <div class="card-header">
+                <h2>Squash Match</h2>
+                <span class="icon">🎾</span>
+            </div>
+            <div class="game-stats">
+                <div class="stat-item">Games: <strong id="games-me">0</strong> - <strong id="games-opponent">0</strong></div>
+            </div>
+            <div class="match-history">
+                <div class="history-item">Wins: <span id="matches-won">0</span></div>
+                <div class="history-item">Losses: <span id="matches-lost">0</span></div>
+            </div>
+            <div class="scoreboard">
+                <div class="score-box">
+                    <span class="player-label">ME</span>
+                    <span id="score-me">0</span>
+                </div>
+                <div class="divider">:</div>
+                <div class="score-box">
+                    <span class="player-label">OPP</span>
+                    <span id="score-opponent">0</span>
+                </div>
+            </div>
+            <div class="controls-grid">
+                <button class="btn main-btn" onclick="addPoint('me')">Me +1</button>
+                <button class="btn main-btn" onclick="addPoint('opponent')">Opp +1</button>
+                <button class="btn reset-btn" onclick="resetPoints()">Reset Game</button>
+                <button class="btn complete-btn" onclick="completeMatch()">Complete Match</button>
+            </div>
+        </div>
+
+        <!-- Running Card -->
+        <div class="card run">
+            <div class="card-header">
+                <h2>Running</h2>
+                <span class="icon">🏃‍♂️</span>
+            </div>
+            <div class="run-stats-grid">
+                <div class="run-stat-box">
+                    <span class="label">Weekly Goal</span>
+                    <span class="val">20.0 km</span>
+                </div>
+                <div class="run-stat-box">
+                    <span class="label">Completed</span>
+                    <span class="val" id="run-distance">0.0 km</span>
+                </div>
+            </div>
+            <div id="goal-reached-msg" class="hidden-msg">
+                Hurray! You have reached your goal 🥳
+            </div>
+            <div class="last-run">
+                <p>Last Session: <span id="last-run-date">None</span></p>
+                <p>Status: <span id="run-status" class="pending">Resting</span></p>
+            </div>
+            <div class="run-controls" style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn-small reset-week-btn" onclick="resetWeek()">Reset Week</button>
+                <button class="btn-small log-run-btn" onclick="completeRun()">Log 5 km Run</button>
+            </div>
+        </div>
+    </main>
+
+    <section class="footer-image-container">
+        <img src="wpFG.jpg" alt="Workout Motivation" class="full-view-img">
+    </section>
+
+    <footer>
+        <div class="footer-logo" onclick="scrollToTop()">Core<span>Progress</span></div>
+        <p class="copyright">&copy; 2026 Vlad Holub</p>
+    </footer>
+
+    <audio id="beep-sound" src="https://google.com"></audio>
+    <script src="script.js"></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const user = localStorage.getItem('currentUser');
+        const authSection = document.getElementById('nav-auth-section');
+
+        if (user) {
+            // If a user is logged in, show their name and a Sign Out button
+            authSection.innerHTML = `
+                <li><a href="https://youtube.com/squashtv" target="_blank">SquashTV</a></li>
+                <li><span style="color: var(--primary); font-weight: bold;">Hi, ${user}!</span></li>
+                <li><a href="#" onclick="signOut()" class="auth-btn" style="border-color: #ef4444; color: #ef4444;">Sign Out</a></li>
+            `;
+        }
+    });
+
+    function signOut() {
+        if(confirm("Are you sure you want to sign out?")) {
+            localStorage.removeItem('currentUser'); // Clear the "notebook"
+            window.location.reload(); // Refresh the page to show Sign In buttons again
+        }
+    }
+</script>
+
+</body>
+</html>

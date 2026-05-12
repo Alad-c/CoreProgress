@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CoreProgress | Leaderboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💪</text></svg>">
+    <style>
+        /* Дополнительные стили только для таблицы лидеров */
+        .leaderboard-table { width: 100%; color: white; border-collapse: collapse; margin-top: 20px; font-size: 0.9rem; }
+        .leaderboard-table th { padding: 12px 8px; border-bottom: 1px solid var(--primary); color: var(--primary); text-transform: uppercase; font-size: 0.8rem; }
+        .leaderboard-table td { padding: 12px 8px; border-bottom: 1px solid #1e293b; text-align: center; }
+        .leaderboard-table td.left-align { text-align: left; }
+        .leaderboard-table .total-col { color: var(--primary); font-weight: bold; font-size: 1.1rem; }
+    </style>
+</head>
+<body class="auth-body">
+    <nav>
+        <div class="logo" onclick="window.location.href='index.html'">Core<span>Progress</span></div>
+        <ul class="nav-links">
+            <li><a href="index.html">Back to Dashboard</a></li>
+        </ul>
+    </nav>
+
+    <div class="auth-container">
+        <div class="card" style="width: 100%; max-width: 700px;">
+            <div class="card-header">
+                <h2>Top 5 Athletes</h2>
+                <span class="icon">🏆</span>
+            </div>
+            
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th class="left-align">Rank</th>
+                        <th class="left-align">Username</th>
+                        <th>Street 💪</th>
+                        <th>Squash 🎾</th>
+                        <th>Run 🏃‍♂️</th>
+                        <th>Total Score</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-body">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        fetch('/top-results')
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.getElementById('leaderboard-body');
+                
+                if (data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="padding: 20px; color: var(--text-dim);">No workouts logged yet. Be the first!</td></tr>`;
+                    return;
+                }
+
+                data.forEach((user, index) => {
+                    const row = `
+                        <tr>
+                            <td class="left-align" style="color: var(--text-dim); font-weight: bold;">#${index + 1}</td>
+                            <td class="left-align" style="font-weight: bold;">${user.username}</td>
+                            <td>${user.street_workouts || 0}</td>
+                            <td>${user.squash_matches || 0}</td>
+                            <td>${user.running_goals || 0}</td>
+                            <td class="total-col">${user.total_workouts}</td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            })
+            .catch(err => {
+                document.getElementById('leaderboard-body').innerHTML = `<tr><td colspan="6" style="color: var(--error);">Error loading data.</td></tr>`;
+            });
+    </script>
+</body>
+</html>

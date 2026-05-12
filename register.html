@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoreProgress | Register</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💪</text></svg>">
+</head>
+
+<body class="auth-body">
+    <nav>
+        <div class="logo" onclick="window.location.href='index.html'">Core<span>Progress</span></div>
+
+        <div class="music-player">
+            <audio id="bg-music" controls>
+                <source src="Coldplay - WE PRAY (TINI Version) (Official).mp3" type="audio/mpeg">
+            </audio>
+        </div>
+
+        <ul class="nav-links">
+            <li><a href="https://youtube.com/squashtv" target="_blank">SquashTV</a></li>
+            <li><a href="index.html">Dashboard</a></li>
+        </ul>
+    </nav>
+
+    <div class="auth-container">
+        <div class="card auth-card">
+            <div class="card-header">
+                <h2>Create Account</h2>
+                <span class="icon">📝</span>
+            </div>
+            <p class="auth-subtitle">Join the community and track your progress</p>
+
+            <form id="registerForm" class="auth-form">
+                <div class="input-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" placeholder="Choose a username" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="••••••••" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="btn main-btn auth-submit">Register Now</button>
+            </form>
+
+            <div class="auth-footer">
+                <span>Already have an account? <a href="login.html">Sign In</a></span>
+            </div>
+        </div>
+    </div>
+
+    <section class="footer-image-container">
+        <img src="wpFG.jpg" alt="Workout Motivation" class="full-view-img">
+    </section>
+
+    <footer>
+        <div class="footer-logo" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">Core<span>Progress</span></div>
+        <p class="copyright">&copy; 2026 Vlad Holub</p>
+    </footer>
+
+    <script>
+        const registerForm = document.getElementById('registerForm');
+
+        registerForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            const confirmPass = document.getElementById('confirmPassword').value;
+
+            // --- FRONTEND VALIDATION ---
+            
+            // 1. Username Regex check
+            const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+            if (!usernameRegex.test(username)) {
+                alert("Error: Username must be 3-20 characters long and contain only letters, numbers, or underscores! ⚠️");
+                return;
+            }
+
+            // 2. Password match check
+            if (pass !== confirmPass) {
+                alert("Error: Passwords do not match! ❌");
+                return;
+            }
+
+            // 3. Password length check
+            if (pass.length < 6) {
+                alert("Error: Password must be at least 6 characters long! ⚠️");
+                return;
+            }
+
+            // --- SEND TO SERVER ---
+            fetch('/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password: pass })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("✅ " + data.message);
+                        window.location.href = 'login.html'; // Redirect to login on success
+                    } else {
+                        alert("❌ " + data.message); // This will show "Already taken" or "Invalid format" from server
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert("❌ Server connection failed!");
+                });
+        });
+    </script>
+</body>
+
+</html>

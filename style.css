@@ -1,0 +1,381 @@
+/* --- CORE VARIABLES --- */
+:root {
+    --primary: #00ff88;      /* Neon Green */
+    --bg: #0f111a;           /* Deep Obsidian */
+    --card-bg: #1a1d29;      /* Dark Grey/Blue */
+    --text: #ffffff;
+    --text-dim: #94a3b8;     /* Muted Slate */
+    --error: #ef4444;        /* Bright Red */
+    --warning: #fbbf24;      /* Amber/Yellow */
+    --accent: #2563eb;       /* Royal Blue */
+}
+
+/* --- GLOBAL STYLES --- */
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- NAVIGATION --- */
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 5%;
+    background: #000;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 1px solid #334155;
+}
+
+.logo, .footer-logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: none;
+    color: white;
+}
+
+.logo span, .footer-logo span {
+    color: var(--primary);
+}
+
+.nav-links {
+    display: flex;
+    gap: 20px;
+    list-style: none;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: 0.3s;
+}
+
+.nav-links a:hover {
+    color: var(--primary);
+}
+
+/* Music Player in Nav */
+.music-player {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+}
+
+audio {
+    width: 250px;
+    height: 30px;
+    filter: invert(100%) hue-rotate(180deg) brightness(1.5);
+}
+
+/* --- DASHBOARD LAYOUT --- */
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 25px;
+    padding: 40px 5%;
+    flex-grow: 1;
+}
+
+.card {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 25px;
+    border: 1px solid #334155;
+    transition: 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.card:hover {
+    border-color: var(--primary);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.card h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--primary);
+}
+
+/* --- COMPONENT STYLES --- */
+
+/* Counters & Stats */
+.counter-display {
+    text-align: center;
+    margin: 20px 0;
+}
+
+#set-count {
+    font-size: 3.5rem;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+/* Timer */
+#timer-display {
+    text-align: center;
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+}
+
+.timer-inactive {
+    background: #000;
+    color: var(--text-dim);
+}
+
+.timer-active {
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 0 15px rgba(37, 99, 235, 0.4);
+}
+
+/* Squash Scoreboard */
+.scoreboard {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #000;
+    padding: 20px;
+    border-radius: 12px;
+    margin: 15px 0;
+}
+
+.score-box { text-align: center; }
+.player-label { display: block; font-size: 0.7rem; color: var(--text-dim); margin-bottom: 5px; text-transform: uppercase; }
+#score-me, #score-opponent { font-size: 2.5rem; font-weight: bold; }
+.divider { margin: 0 20px; font-size: 1.5rem; color: var(--text-dim); }
+
+.game-stats { text-align: center; color: var(--primary); margin-bottom: 10px; font-weight: bold; }
+.match-history { display: flex; justify-content: space-around; font-size: 0.8rem; margin-bottom: 15px; color: var(--text-dim); }
+#matches-won { color: var(--primary); font-weight: bold; }
+#matches-lost { color: var(--error); font-weight: bold; }
+
+/* Running Section */
+.run-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.run-stat-box {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.run-stat-box .label { display: block; font-size: 0.75rem; color: var(--text-dim); }
+.run-stat-box .val { font-size: 1.3rem; font-weight: bold; color: var(--primary); }
+
+.hidden-msg {
+    display: none;
+    background: var(--primary);
+    color: #000;
+    padding: 12px;
+    border-radius: 10px;
+    text-align: center;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+.show-msg { display: block; animation: fadeIn 0.5s ease-in; }
+
+.last-run { font-size: 0.85rem; color: var(--text-dim); border-top: 1px solid #334155; padding-top: 15px; margin-bottom: 15px; }
+.pending { color: var(--error); }
+.done { color: var(--primary); font-weight: bold; }
+
+/* --- BUTTONS --- */
+.btn {
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+    font-size: 0.9rem;
+}
+
+.controls-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.main-btn { background: var(--primary); color: #000; }
+.rest-btn { background: var(--warning); color: #000; }
+.reset-btn { background: var(--error); color: white; }
+.complete-btn { background: var(--accent); color: white; }
+
+.btn:hover { opacity: 0.85; filter: brightness(1.1); }
+
+.btn-small {
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.85rem;
+    color: white;
+}
+
+.log-run-btn { background: var(--primary); color: #000; }
+.reset-week-btn { background: var(--error); }
+
+/* --- AUTH (LOGIN/REGISTER) STYLES --- */
+.auth-body {
+    background-color: var(--bg);
+}
+
+.auth-container {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 20px;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 0 30px rgba(0, 255, 136, 0.1);
+}
+
+.auth-subtitle {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    margin-bottom: 25px;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.input-group label {
+    font-size: 0.8rem;
+    color: var(--primary);
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.input-group input {
+    background: #000;
+    border: 1px solid #334155;
+    padding: 14px;
+    border-radius: 10px;
+    color: white;
+    outline: none;
+    transition: 0.3s;
+}
+
+.input-group input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+}
+
+.auth-submit {
+    margin-top: 10px;
+    padding: 16px;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.auth-footer {
+    margin-top: 25px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+}
+
+.auth-footer a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+/* Header Auth Buttons */
+.auth-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--primary);
+    border-radius: 6px;
+    transition: 0.3s;
+}
+
+.auth-btn.register {
+    background: var(--primary);
+    color: #000 !important;
+}
+
+/* --- FOOTER & IMAGE --- */
+.footer-image-container {
+    width: 100%;
+    background: #000;
+    display: flex;
+    justify-content: center;
+    padding: 60px 0;
+}
+
+.full-view-img {
+    max-width: 90%;
+    height: auto;
+    object-fit: contain;
+    border-radius: 15px;
+    box-shadow: 0 0 40px rgba(0,0,0,0.5);
+}
+
+footer {
+    text-align: center;
+    padding: 50px 5%;
+    background: #000;
+    border-top: 1px solid #334155;
+}
+
+.copyright {
+    margin-top: 15px;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
