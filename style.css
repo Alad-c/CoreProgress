@@ -379,3 +379,48 @@ footer {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* --- MOBILE RESPONSIVENESS (SMARTPHONES) --- */
+@media (max-width: 768px) {
+    /* 1. Navigation: stack the logo, player, and buttons vertically */
+    nav {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px 5%;
+        text-align: center;
+    }
+
+    /* 2. Menu links: allow wrapping to a new line if needed */
+    .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    /* 3. Audio player: ensure it doesn't overflow the screen width */
+    audio {
+        width: 100%;
+        max-width: 300px;
+    }
+
+    /* 4. Dashboard: reduce side padding to maximize screen space */
+    .dashboard {
+        padding: 20px 15px;
+        gap: 20px;
+    }
+
+    /* 5. Cards: prevent wide tables (like the leaderboard) from breaking the layout */
+    .card {
+        overflow-x: auto;
+        padding: 15px;
+    }
+    
+    /* 6. Typography: scale down large counter fonts for mobile screens */
+    #set-count {
+        font-size: 2.5rem;
+    }
+    
+    #score-me, #score-opponent {
+        font-size: 2rem;
+    }
+}
