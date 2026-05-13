@@ -1,7 +1,8 @@
 const dns = require('dns');
-dns.setDefaultResultOrder('ipv4first');
+dns.setDefaultResultOrder('ipv4first'); // Forces the app to prefer IPv4 (fixes Render/Supabase connection issue)
+
 const express = require('express');
-const { Pool } = require('pg'); // PostgreSQL client for Node.js
+const { Pool } = require('pg'); // PostgreSQL client
 const bcrypt = require('bcrypt'); // Password hashing
 const path = require('path');
 const app = express();
