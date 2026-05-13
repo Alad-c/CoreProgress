@@ -4,7 +4,6 @@ dns.setDefaultResultOrder('ipv4first');
 const express = require('express');
 const { Pool } = require('pg');
 // ... all other code remains unchanged
-const express = require('express');
 const { Pool } = require('pg'); // PostgreSQL client for Node.js
 const bcrypt = require('bcrypt'); // Password hashing
 const path = require('path');
