@@ -119,7 +119,7 @@ app.post('/log-workout', (req, res) => {
     });
 });
 
-// --- GET TOP 5 USERS (С разбивкой по видам спорта) ---
+// --- GET TOP 5 USERS (Breakdown by sport) ---
 app.get('/top-results', (req, res) => {
     const query = `
         SELECT 
