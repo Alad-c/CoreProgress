@@ -144,6 +144,47 @@ app.get('/top-results', (req, res) => {
     });
 });
 
+// --- GET USER HISTORY ---
+app.post('/my-history', (req, res) => {
+    const { username } = req.body;
+
+    // 1. Find the user ID
+    db.get(`SELECT id FROM users WHERE username = ?`, [username], (err, user) => {
+        if (err || !user) return res.status(400).json({ success: false, message: "User not found" });
+
+        // 2. Get all logs for this specific user (ordered by newest first)
+        const query = `SELECT id, type, value, date FROM workout_logs WHERE user_id = ? ORDER BY id DESC`;
+        db.all(query, [user.id], (err, logs) => {
+            if (err) return res.status(500).json({ success: false, message: "Database error" });
+            res.json({ success: true, logs });
+        });
+    });
+});
+
+// --- DELETE WORKOUT LOG ---
+app.post('/delete-log', (req, res) => {
+    const { username, logId } = req.body;
+
+    // 1. Verify the user exists (Security check)
+    db.get(`SELECT id FROM users WHERE username = ?`, [username], (err, user) => {
+        if (err || !user) return res.status(400).json({ success: false, message: "Auth failed" });
+
+        // 2. Delete the log. 
+        // SECURITY NOTE: We check BOTH log id AND user_id so users can't delete other people's logs!
+        const query = `DELETE FROM workout_logs WHERE id = ? AND user_id = ?`;
+        db.run(query, [logId, user.id], function(err) {
+            if (err) return res.status(500).json({ success: false, message: "Failed to delete" });
+            
+            // this.changes tells us how many rows were actually deleted
+            if (this.changes === 0) {
+                return res.status(404).json({ success: false, message: "Log not found or unauthorized" });
+            }
+            
+            res.json({ success: true, message: "Log deleted successfully!" });
+        });
+    });
+});
+
 // Start Server
 app.listen(PORT, () => {
     console.log(`🚀 Server running at http://localhost:${PORT}`);

@@ -133,10 +133,12 @@
         const authSection = document.getElementById('nav-auth-section');
 
         if (user) {
-            // If a user is logged in, show their name and a Sign Out button
+            // If a user is logged in, show their name, History, and Sign Out button
             authSection.innerHTML = `
                 <li><a href="https://youtube.com/squashtv" target="_blank">SquashTV</a></li>
-                <li><span style="color: var(--primary); font-weight: bold;">Hi, ${user}!</span></li>
+                <li><a href="results.html" style="color: var(--warning); font-weight: bold;">🏆 Results</a></li>
+                <li><a href="history.html" style="color: var(--primary); font-weight: bold;">📅 My History</a></li>
+                <li><span style="color: white; font-weight: bold;">Hi, ${user}!</span></li>
                 <li><a href="#" onclick="signOut()" class="auth-btn" style="border-color: #ef4444; color: #ef4444;">Sign Out</a></li>
             `;
         }
