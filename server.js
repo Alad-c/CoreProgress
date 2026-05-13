@@ -1,50 +1,60 @@
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
-const bcrypt = require('bcrypt'); // For password encryption
+const { Pool } = require('pg'); // PostgreSQL client for Node.js
+const bcrypt = require('bcrypt'); // Password hashing
 const path = require('path');
 const app = express();
-const PORT = 3000;
 
-// Middleware to read JSON and HTML Form data
+// Use the port provided by Render or default to 3000
+const PORT = process.env.PORT || 3000;
+
+// --- DATABASE CONNECTION ---
+// The connection string will be stored in Render's Environment Variables
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false // Required for most cloud database providers like Supabase
+    }
+});
+
+// --- MIDDLEWARE ---
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '/')));
 
-// 1. Initialize Database (CoreProgress.db will be created automatically)
-const db = new sqlite3.Database('./CoreProgress.db', (err) => {
-    if (err) console.error('DB Error:', err.message);
-    else console.log('✅ Connected to CoreProgress SQLite database.');
-});
-
-// 2. Create Tables if they don't exist
-db.serialize(() => {
-    // Create Users Table (UNIQUE constraint prevents duplicate usernames)
-    db.run(`CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE,
-        password TEXT
-    )`);
-    
-    // Create Workout Logs Table
-    db.run(`CREATE TABLE IF NOT EXISTS workout_logs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
-        type TEXT,
-        value TEXT,
-        date TEXT,
-        FOREIGN KEY(user_id) REFERENCES users(id)
-    )`);
-    
-    console.log("✅ Database tables are ready.");
-});
+// --- DATABASE INITIALIZATION ---
+// Create tables if they do not exist (PostgreSQL syntax)
+async function initDB() {
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                username TEXT UNIQUE,
+                password TEXT
+            );
+        `);
+        
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS workout_logs (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER REFERENCES users(id),
+                type TEXT,
+                value TEXT,
+                date TEXT
+            );
+        `);
+        console.log("✅ Cloud Database (PostgreSQL) tables are ready.");
+    } catch (err) {
+        console.error("❌ Database Init Error:", err.message);
+    }
+}
+initDB();
 
 // --- ROUTES ---
 
-// 3. Registration Route
+// 1. Registration Route
 app.post('/register', async (req, res) => {
     const { username, password } = req.body;
 
-    // --- SERVER-SIDE VALIDATION ---
-    // Check if username is between 3-20 characters and contains only letters, numbers, or underscores
+    // Validation: 3-20 characters, letters, numbers, and underscores only
     const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
     if (!usernameRegex.test(username)) {
         return res.status(400).json({ 
@@ -54,73 +64,68 @@ app.post('/register', async (req, res) => {
     }
 
     try {
-        // Hash the password (encrypt it) so it's secure
         const hashedPassword = await bcrypt.hash(password, 10);
-
-        const query = `INSERT INTO users (username, password) VALUES (?, ?)`;
-        db.run(query, [username, hashedPassword], function(err) {
-            if (err) {
-                // Check if the error is because the username already exists
-                if (err.message && err.message.includes("UNIQUE constraint failed")) {
-                    return res.status(400).json({ 
-                        success: false, 
-                        message: "This username is already taken. Please choose another one! 👤" 
-                    });
-                }
-                // Generic database error
-                return res.status(500).json({ success: false, message: "Database error during registration." });
-            }
-            // Success
-            res.json({ success: true, message: "Account created successfully! 🎉" });
-        });
-    } catch (e) {
+        const query = 'INSERT INTO users (username, password) VALUES ($1, $2)';
+        
+        await pool.query(query, [username, hashedPassword]);
+        res.json({ success: true, message: "Account created in Cloud DB! 🎉" });
+    } catch (err) {
+        if (err.code === '23505') { // PostgreSQL code for unique_violation
+            return res.status(400).json({ 
+                success: false, 
+                message: "This username is already taken! 👤" 
+            });
+        }
         res.status(500).json({ success: false, message: "Server error during registration." });
     }
 });
 
-// 4. Login Route
-app.post('/login', (req, res) => {
+// 2. Login Route
+app.post('/login', async (req, res) => {
     const { username, password } = req.body;
 
-    const query = `SELECT * FROM users WHERE username = ?`;
-    db.get(query, [username], async (err, user) => {
-        if (err) return res.status(500).json({ success: false, message: "Database error." });
+    try {
+        const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+        const user = result.rows[0];
+
         if (!user) return res.status(400).json({ success: false, message: "User not found." });
 
-        // Compare the password sent with the encrypted one in DB
         const match = await bcrypt.compare(password, user.password);
-        
         if (match) {
             res.json({ success: true, message: "Login successful!", username: user.username });
         } else {
             res.status(400).json({ success: false, message: "Invalid password." });
         }
-    });
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Database error." });
+    }
 });
 
-// --- LOG WORKOUT DATA ---
-app.post('/log-workout', (req, res) => {
+// 3. Log Workout Route
+app.post('/log-workout', async (req, res) => {
     const { username, type, value } = req.body;
     const date = new Date().toLocaleDateString();
 
-    // 1. Find the user ID first
-    db.get(`SELECT id FROM users WHERE username = ?`, [username], (err, user) => {
-        if (err || !user) return res.status(400).json({ success: false, message: "User not found" });
+    try {
+        // Find user ID
+        const userRes = await pool.query('SELECT id FROM users WHERE username = $1', [username]);
+        if (userRes.rows.length === 0) return res.status(400).json({ success: false, message: "User not found" });
 
-        // 2. Insert the log
-        const query = `INSERT INTO workout_logs (user_id, type, value, date) VALUES (?, ?, ?, ?)`;
-        db.run(query, [user.id, type, value, date], function(err) {
-            if (err) {
-                console.error("Log error:", err);
-                return res.status(500).json({ success: false, message: "Failed to save log" });
-            }
-            res.json({ success: true, message: "Workout saved to database!" });
-        });
-    });
+        const userId = userRes.rows[0].id;
+
+        // Insert log using $n placeholders
+        const query = 'INSERT INTO workout_logs (user_id, type, value, date) VALUES ($1, $2, $3, $4)';
+        await pool.query(query, [userId, type, value, date]);
+
+        res.json({ success: true, message: "Workout saved to Cloud DB!" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Failed to save log" });
+    }
 });
 
-// --- GET TOP 5 USERS (Breakdown by sport) ---
-app.get('/top-results', (req, res) => {
+// 4. Leaderboard Route (Top 5 Users)
+app.get('/top-results', async (req, res) => {
     const query = `
         SELECT 
             users.username,
@@ -130,62 +135,58 @@ app.get('/top-results', (req, res) => {
             COUNT(workout_logs.id) AS total_workouts
         FROM users
         JOIN workout_logs ON users.id = workout_logs.user_id
-        GROUP BY users.id
+        GROUP BY users.id, users.username
         ORDER BY total_workouts DESC
         LIMIT 5
     `;
 
-    db.all(query, [], (err, rows) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ success: false, message: "Database error" });
-        }
-        res.json(rows);
-    });
+    try {
+        const result = await pool.query(query);
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Database error" });
+    }
 });
 
-// --- GET USER HISTORY ---
-app.post('/my-history', (req, res) => {
+// 5. My History Route
+app.post('/my-history', async (req, res) => {
     const { username } = req.body;
 
-    // 1. Find the user ID
-    db.get(`SELECT id FROM users WHERE username = ?`, [username], (err, user) => {
-        if (err || !user) return res.status(400).json({ success: false, message: "User not found" });
+    try {
+        const userRes = await pool.query('SELECT id FROM users WHERE username = $1', [username]);
+        if (userRes.rows.length === 0) return res.status(400).json({ success: false, message: "User not found" });
 
-        // 2. Get all logs for this specific user (ordered by newest first)
-        const query = `SELECT id, type, value, date FROM workout_logs WHERE user_id = ? ORDER BY id DESC`;
-        db.all(query, [user.id], (err, logs) => {
-            if (err) return res.status(500).json({ success: false, message: "Database error" });
-            res.json({ success: true, logs });
-        });
-    });
+        const query = 'SELECT id, type, value, date FROM workout_logs WHERE user_id = $1 ORDER BY id DESC';
+        const result = await pool.query(query, [userRes.rows[0].id]);
+        
+        res.json({ success: true, logs: result.rows });
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Database error" });
+    }
 });
 
-// --- DELETE WORKOUT LOG ---
-app.post('/delete-log', (req, res) => {
+// 6. Delete Log Route
+app.post('/delete-log', async (req, res) => {
     const { username, logId } = req.body;
 
-    // 1. Verify the user exists (Security check)
-    db.get(`SELECT id FROM users WHERE username = ?`, [username], (err, user) => {
-        if (err || !user) return res.status(400).json({ success: false, message: "Auth failed" });
+    try {
+        const userRes = await pool.query('SELECT id FROM users WHERE username = $1', [username]);
+        if (userRes.rows.length === 0) return res.status(400).json({ success: false, message: "Auth failed" });
 
-        // 2. Delete the log. 
-        // SECURITY NOTE: We check BOTH log id AND user_id so users can't delete other people's logs!
-        const query = `DELETE FROM workout_logs WHERE id = ? AND user_id = ?`;
-        db.run(query, [logId, user.id], function(err) {
-            if (err) return res.status(500).json({ success: false, message: "Failed to delete" });
-            
-            // this.changes tells us how many rows were actually deleted
-            if (this.changes === 0) {
-                return res.status(404).json({ success: false, message: "Log not found or unauthorized" });
-            }
-            
-            res.json({ success: true, message: "Log deleted successfully!" });
-        });
-    });
+        const query = 'DELETE FROM workout_logs WHERE id = $1 AND user_id = $2';
+        const result = await pool.query(query, [logId, userRes.rows[0].id]);
+        
+        if (result.rowCount === 0) {
+            return res.status(404).json({ success: false, message: "Log not found or unauthorized" });
+        }
+        
+        res.json({ success: true, message: "Log deleted from Cloud DB!" });
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Failed to delete" });
+    }
 });
 
-// Start Server
+// --- SERVER START ---
 app.listen(PORT, () => {
     console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
