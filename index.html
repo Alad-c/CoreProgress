@@ -58,13 +58,15 @@
                 <h2>Squash Match</h2>
                 <span class="icon">🎾</span>
             </div>
+            
+            <div style="margin-bottom: 15px; text-align: center;">
+                <input type="text" id="opponent-input" placeholder="Opponent's Name" class="form-input" style="width: 80%; padding: 8px; border-radius: 5px; border: 1px solid #334155; background: #0f172a; color: white;">
+            </div>
+
             <div class="game-stats">
                 <div class="stat-item">Games: <strong id="games-me">0</strong> - <strong id="games-opponent">0</strong></div>
             </div>
-            <div class="match-history">
-                <div class="history-item">Wins: <span id="matches-won">0</span></div>
-                <div class="history-item">Losses: <span id="matches-lost">0</span></div>
-            </div>
+            
             <div class="scoreboard">
                 <div class="score-box">
                     <span class="player-label">ME</span>
@@ -81,6 +83,12 @@
                 <button class="btn main-btn" onclick="addPoint('opponent')">Opp +1</button>
                 <button class="btn reset-btn" onclick="resetPoints()">Reset Game</button>
                 <button class="btn complete-btn" onclick="completeMatch()">Complete Match</button>
+            </div>
+
+            <div id="squash-analytics-container" style="margin-top: 20px; border-top: 1px solid #334155; padding-top: 15px; display: none;">
+                <h3 style="font-size: 14px; color: #94a3b8; margin-bottom: 10px;">Rivals Stats</h3>
+                <div id="squash-stats-list" style="font-size: 14px;">
+                    </div>
             </div>
         </div>
 

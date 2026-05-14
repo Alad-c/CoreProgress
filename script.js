@@ -18,15 +18,16 @@ function checkAuth() {
 
 /**
  * Sends workout data to the server database.
+ * UPDATED: Now accepts an optional opponent parameter.
  */
-function saveWorkoutToServer(type, value) {
+function saveWorkoutToServer(type, value, opponent = null) {
     const username = localStorage.getItem('currentUser');
     if (!username) return false;
 
     fetch('/log-workout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, type, value })
+        body: JSON.stringify({ username, type, value, opponent }) // Added opponent here
     })
     .then(response => response.json())
     .then(data => {
@@ -144,20 +145,29 @@ function completeMatch() {
     if (myGms === 0 && oppGms === 0) {
         return alert("Finish a game first!");
     }
+
+    // 3. Get the opponent's name from the input field
+    const opponentName = document.getElementById('opponent-input').value.trim();
+    if (!opponentName) {
+        return alert("Please enter the opponent's name!");
+    }
     
     const score = `${myGms}:${oppGms}`;
-    saveWorkoutToServer("Squash Match", score);
+    // Pass the opponent name to the server
+    saveWorkoutToServer("Squash Match", score, opponentName);
 
     if (myGms > oppGms) wins++; else losses++;
-    
-    document.getElementById('matches-won').innerText = wins;
-    document.getElementById('matches-lost').innerText = losses;
     
     myGms = 0; 
     oppGms = 0; 
     updateGames(); 
     resetPoints();
-    alert("Match saved to database! 🎾");
+    document.getElementById('opponent-input').value = ''; // Clear input
+
+    alert("Match saved! 🏆");
+    
+    // Refresh the stats list after a short delay to allow DB insert
+    setTimeout(loadSquashStats, 500); 
 }
 
 
@@ -298,9 +308,48 @@ function loadAnalytics() {
     .catch(err => console.error("Error loading analytics:", err));
 }
 
-// Trigger the analytics load if a session exists upon DOM content loaded
+// --- SQUASH RIVALS ANALYTICS ---
+function loadSquashStats() {
+    const user = localStorage.getItem('currentUser');
+    if (!user) return;
+
+    fetch('/squash-stats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: user })
+    })
+    .then(res => res.json())
+    .then(response => {
+        if (!response.success || response.stats.length === 0) return;
+
+        const container = document.getElementById('squash-analytics-container');
+        const list = document.getElementById('squash-stats-list');
+        
+        container.style.display = 'block';
+        list.innerHTML = ''; // Clear old data
+
+        // Generate HTML for each opponent
+        response.stats.forEach(stat => {
+            // Calculate win rate percentage safely
+            const winRate = stat.total_matches > 0 
+                ? Math.round((stat.wins / stat.total_matches) * 100) 
+                : 0;
+
+            list.innerHTML += `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px; padding: 5px; background: rgba(255,255,255,0.05); border-radius: 4px;">
+                    <span>🎾 vs <strong>${stat.opponent_name}</strong></span>
+                    <span>${stat.wins}W / ${stat.total_matches}M (${winRate}%)</span>
+                </div>
+            `;
+        });
+    })
+    .catch(err => console.error("Error loading squash stats:", err));
+}
+
+// Add this to the existing DOMContentLoaded listener at the very bottom
 document.addEventListener('DOMContentLoaded', () => {
     if (localStorage.getItem('currentUser')) {
-        loadAnalytics();
+        loadAnalytics();    // Existing Chart.js load
+        loadSquashStats();  // NEW: Load squash rivals
     }
 });

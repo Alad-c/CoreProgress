@@ -24,7 +24,6 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '/')));
 
 // --- DATABASE INITIALIZATION ---
-// Create tables if they do not exist (PostgreSQL syntax)
 async function initDB() {
     try {
         await pool.query(`
@@ -44,6 +43,13 @@ async function initDB() {
                 date TEXT
             );
         `);
+
+        // Add opponent column if it doesn't exist (safe to run multiple times)
+        await pool.query(`
+            ALTER TABLE workout_logs 
+            ADD COLUMN IF NOT EXISTS opponent_name TEXT;
+        `);
+
         console.log("✅ Cloud Database (PostgreSQL) tables are ready.");
     } catch (err) {
         console.error("❌ Database Init Error:", err.message);
@@ -104,21 +110,21 @@ app.post('/login', async (req, res) => {
     }
 });
 
-// 3. Log Workout Route
+// 3. Log Workout Route (UPDATED)
 app.post('/log-workout', async (req, res) => {
-    const { username, type, value } = req.body;
+    // Add opponent to the destructured body
+    const { username, type, value, opponent } = req.body; 
     const date = new Date().toLocaleDateString();
 
     try {
-        // Find user ID
         const userRes = await pool.query('SELECT id FROM users WHERE username = $1', [username]);
         if (userRes.rows.length === 0) return res.status(400).json({ success: false, message: "User not found" });
 
         const userId = userRes.rows[0].id;
 
-        // Insert log using $n placeholders
-        const query = 'INSERT INTO workout_logs (user_id, type, value, date) VALUES ($1, $2, $3, $4)';
-        await pool.query(query, [userId, type, value, date]);
+        // Insert log including the opponent_name (it will be NULL for Street Workout and Running)
+        const query = 'INSERT INTO workout_logs (user_id, type, value, date, opponent_name) VALUES ($1, $2, $3, $4, $5)';
+        await pool.query(query, [userId, type, value, date, opponent || null]);
 
         res.json({ success: true, message: "Workout saved to Cloud DB!" });
     } catch (err) {
@@ -211,6 +217,37 @@ app.post('/analytics', async (req, res) => {
         res.json({ success: true, data: result.rows });
     } catch (err) {
         console.error("Analytics Error:", err);
+        res.status(500).json({ success: false, message: "Database error" });
+    }
+});
+// 8. Squash Opponent Analytics Route
+app.post('/squash-stats', async (req, res) => {
+    const { username } = req.body;
+
+    try {
+        const userRes = await pool.query('SELECT id FROM users WHERE username = $1', [username]);
+        if (userRes.rows.length === 0) return res.status(400).json({ success: false, message: "User not found" });
+
+        // Advanced SQL: Group by opponent, count total matches, and calculate wins by parsing the "value" string (e.g., "3:1")
+        const query = `
+            SELECT 
+                opponent_name,
+                COUNT(id) as total_matches,
+                SUM(
+                    CASE WHEN 
+                        CAST(SPLIT_PART(value, ':', 1) AS INTEGER) > CAST(SPLIT_PART(value, ':', 2) AS INTEGER) 
+                    THEN 1 ELSE 0 END
+                ) as wins
+            FROM workout_logs
+            WHERE type = 'Squash Match' AND user_id = $1 AND opponent_name IS NOT NULL AND opponent_name != ''
+            GROUP BY opponent_name
+            ORDER BY total_matches DESC
+        `;
+        const result = await pool.query(query, [userRes.rows[0].id]);
+        
+        res.json({ success: true, stats: result.rows });
+    } catch (err) {
+        console.error("Squash Stats Error:", err);
         res.status(500).json({ success: false, message: "Database error" });
     }
 });
