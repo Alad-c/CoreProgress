@@ -1,5 +1,7 @@
 # 💪 CoreProgress | Fitness & Activity Tracker
 
+**🌐 Live Demo:** [https://coreprogress-app.onrender.com](https://coreprogress-app.onrender.com)
+
 CoreProgress is a full-stack web application designed to track physical activities, visualize progress, and manage workout logs. The project emphasizes responsive UI and a robust cloud-based backend architecture.
 
 ## ✨ Features
