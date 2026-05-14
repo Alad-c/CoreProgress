@@ -6,6 +6,7 @@
     <title>CoreProgress | Fitness Tracker</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💪</text></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body id="top">
     <nav>
@@ -28,8 +29,6 @@
 </ul>
 
 </nav>
-
-
 
     <main class="dashboard">
         <!-- Street Workout Card -->
@@ -111,6 +110,15 @@
             <div class="run-controls" style="display: flex; gap: 10px; justify-content: flex-end;">
                 <button class="btn-small reset-week-btn" onclick="resetWeek()">Reset Week</button>
                 <button class="btn-small log-run-btn" onclick="completeRun()">Log 5 km Run</button>
+            </div>
+        </div>
+        <div class="card analytics-card" id="analytics-section" style="display: none; grid-column: 1 / -1;">
+            <div class="card-header">
+                <h2>My Activity</h2>
+                <span class="icon">📊</span>
+            </div>
+            <div style="position: relative; height: 300px; width: 100%;">
+                <canvas id="activityChart"></canvas>
             </div>
         </div>
     </main>

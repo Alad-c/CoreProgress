@@ -189,6 +189,32 @@ app.post('/delete-log', async (req, res) => {
     }
 });
 
+// 7. Analytics Route (Data for Chart.js)
+app.post('/analytics', async (req, res) => {
+    const { username } = req.body;
+
+    try {
+        // 1. Find the user ID based on the provided username
+        const userRes = await pool.query('SELECT id FROM users WHERE username = $1', [username]);
+        if (userRes.rows.length === 0) return res.status(400).json({ success: false, message: "User not found" });
+
+        // 2. Execute SQL query to group workouts by type and count them
+        const query = `
+            SELECT type, COUNT(id) as count
+            FROM workout_logs
+            WHERE user_id = $1
+            GROUP BY type
+        `;
+        const result = await pool.query(query, [userRes.rows[0].id]);
+        
+        // Send the aggregated data back to the frontend
+        res.json({ success: true, data: result.rows });
+    } catch (err) {
+        console.error("Analytics Error:", err);
+        res.status(500).json({ success: false, message: "Database error" });
+    }
+});
+
 // --- SERVER START ---
 app.listen(PORT, () => {
     console.log(`🚀 Server running at http://localhost:${PORT}`);

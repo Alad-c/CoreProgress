@@ -221,3 +221,86 @@ function resetWeek() {
         }
     }
 }
+// --- INTERACTIVE CHART (CHART.JS) ---
+let myChart = null; // Store the chart instance globally to destroy it before re-rendering
+
+function loadAnalytics() {
+    const user = localStorage.getItem('currentUser');
+    if (!user) return; // Exit if the user is not logged in
+
+    // Display the analytics card
+    document.getElementById('analytics-section').style.display = 'block';
+
+    // Fetch aggregated data from the analytics route
+    fetch('/analytics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: user })
+    })
+    .then(res => res.json())
+    .then(response => {
+        if (!response.success || response.data.length === 0) return;
+
+        // 1. Extract labels (workout types) and data values (counts) from the response
+        const labels = response.data.map(item => item.type);
+        const dataValues = response.data.map(item => item.count);
+
+        // 2. Select the canvas context
+        const ctx = document.getElementById('activityChart').getContext('2d');
+
+        // Destroy the existing chart instance if it exists to prevent overlapping
+        if (myChart) {
+            myChart.destroy();
+        }
+
+        // 3. Render the new bar chart
+        myChart = new Chart(ctx, {
+            type: 'bar', // Specify a bar chart
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Total Workouts',
+                    data: dataValues,
+                    backgroundColor: [
+                        'rgba(56, 189, 248, 0.6)',  // Light Blue
+                        'rgba(167, 139, 250, 0.6)', // Purple
+                        'rgba(52, 211, 153, 0.6)'   // Green
+                    ],
+                    borderColor: [
+                        'rgba(56, 189, 248, 1)',
+                        'rgba(167, 139, 250, 1)',
+                        'rgba(52, 211, 153, 1)'
+                    ],
+                    borderWidth: 1,
+                    borderRadius: 5 // Rounded bar corners
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1, color: '#94a3b8' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    },
+                    x: {
+                        ticks: { color: '#94a3b8' },
+                        grid: { display: false } // Hide vertical grid lines
+                    }
+                },
+                plugins: {
+                    legend: { display: false } // Hide the top legend
+                }
+            }
+        });
+    })
+    .catch(err => console.error("Error loading analytics:", err));
+}
+
+// Trigger the analytics load if a session exists upon DOM content loaded
+document.addEventListener('DOMContentLoaded', () => {
+    if (localStorage.getItem('currentUser')) {
+        loadAnalytics();
+    }
+});
