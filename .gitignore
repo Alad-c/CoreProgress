@@ -1,2 +1,3 @@
 node_modules/
 CoreProgress.db
+.env
