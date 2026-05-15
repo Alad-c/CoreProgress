@@ -1,3 +1,4 @@
+require('dotenv').config();
 const dns = require('dns');
 dns.setDefaultResultOrder('ipv4first'); // Forces the app to prefer IPv4 (fixes Render/Supabase connection issue)
 
