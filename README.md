@@ -31,4 +31,4 @@ Since the app uses PostgreSQL, you need to provide a connection string. Set the 
 4. Start the server: node server.js
 5. Open your browser and go to http://localhost:3000
 
-   Developed by Vladyslav Holub
+   © 2026 Vladyslav Holub. All rights reserved
