@@ -30,5 +30,10 @@ Since the app uses PostgreSQL, you need to provide a connection string. Set the 
 (Note: For the academic review, the live version on Render is fully configured and operational).
 4. Start the server: node server.js
 5. Open your browser and go to http://localhost:3000
+<img width="1352" height="878" alt="Screenshot 2026-06-27 at 12 58 35" src="https://github.com/user-attachments/assets/bb583098-3474-423f-965f-9f16b5dc7ac1" />
+<img width="1352" height="878" alt="Screenshot 2026-06-27 at 12 58 54" src="https://github.com/user-attachments/assets/63b1297f-305c-4735-bd4d-d5f453858ccd" />
+<img width="1352" height="878" alt="Screenshot 2026-06-27 at 12 59 10" src="https://github.com/user-attachments/assets/4d3daab5-622e-4e9b-b585-689ba11ce5a1" />
+<img width="1352" height="878" alt="Screenshot 2026-06-27 at 12 59 34" src="https://github.com/user-attachments/assets/5bdfd0fe-f97c-4d7e-8db4-0bf504f01f43" />
+
 
    © 2026 Vladyslav Holub. All rights reserved
