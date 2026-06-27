@@ -30,10 +30,11 @@ Since the app uses PostgreSQL, you need to provide a connection string. Set the 
 (Note: For the academic review, the live version on Render is fully configured and operational).
 4. Start the server: node server.js
 5. Open your browser and go to http://localhost:3000
-<img width="1352" height="878" alt="Screenshot 2026-06-27 at 12 58 35" src="https://github.com/user-attachments/assets/bb583098-3474-423f-965f-9f16b5dc7ac1" />
-<img width="1352" height="878" alt="Screenshot 2026-06-27 at 12 58 54" src="https://github.com/user-attachments/assets/63b1297f-305c-4735-bd4d-d5f453858ccd" />
-<img width="1352" height="878" alt="Screenshot 2026-06-27 at 12 59 10" src="https://github.com/user-attachments/assets/4d3daab5-622e-4e9b-b585-689ba11ce5a1" />
-<img width="1352" height="878" alt="Screenshot 2026-06-27 at 12 59 34" src="https://github.com/user-attachments/assets/5bdfd0fe-f97c-4d7e-8db4-0bf504f01f43" />
+<img width="1349" height="774" alt="Screenshot 2026-06-27 at 13 27 16" src="https://github.com/user-attachments/assets/e05c0fd5-3878-4882-b105-068ebe6863e5" />
+<img width="1347" height="775" alt="Screenshot 2026-06-27 at 13 28 27" src="https://github.com/user-attachments/assets/168970e5-cdfa-4cdf-82dc-87c59bb6b797" />
+<img width="1352" height="775" alt="Screenshot 2026-06-27 at 13 29 05" src="https://github.com/user-attachments/assets/6acc67f5-9745-46bb-ac59-be5c82ab9d0b" />
+<img width="1347" height="773" alt="Screenshot 2026-06-27 at 13 29 41" src="https://github.com/user-attachments/assets/2c55d005-8e15-4ae5-9497-28f3b6d0beb6" />
+
 
 
    © 2026 Vladyslav Holub. All rights reserved
